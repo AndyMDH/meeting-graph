@@ -10,16 +10,31 @@ DEFAULT_RUN_TIME="18:30"
 DEFAULT_ALIAS="cortex-run"
 
 NONINTERACTIVE="N"
-for arg in "$@"; do
-  case "$arg" in
-    -y|--yes) NONINTERACTIVE="Y" ;;
+CLI_VAULT_PATH=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -y|--yes) NONINTERACTIVE="Y"; shift ;;
+    -p|--path)
+      if [ -z "${2:-}" ]; then
+        echo "Error: --path requires a value" >&2
+        exit 1
+      fi
+      CLI_VAULT_PATH="$2"
+      shift 2
+      ;;
     -h|--help)
-      echo "Usage: ./install.sh [-y|--yes]"
+      echo "Usage: ./install.sh [-y|--yes] [-p|--path <dir>]"
       echo
-      echo "  -y, --yes   Non-interactive: scaffold with defaults, skip git and"
-      echo "              launchd setup. Re-run without this flag any time to"
-      echo "              customize, or edit the vault directly afterwards."
+      echo "  -y, --yes     Non-interactive: scaffold with defaults, skip git and"
+      echo "                launchd setup. Re-run without this flag any time to"
+      echo "                customize, or edit the vault directly afterwards."
+      echo "  -p, --path    Vault location. Works with or without -y; in"
+      echo "                interactive mode it just becomes the prompt's default."
       exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1 (see --help)" >&2
+      exit 1
       ;;
   esac
 done
@@ -44,7 +59,8 @@ fi
 # --- Prompts (or defaults) ------------------------------------------------
 
 if [ "$NONINTERACTIVE" = "Y" ]; then
-  VAULT_PATH="$DEFAULT_VAULT_PATH"
+  VAULT_PATH="${CLI_VAULT_PATH:-$DEFAULT_VAULT_PATH}"
+  VAULT_PATH="${VAULT_PATH/#\~/$HOME}"
   STARTER_TAGS="$DEFAULT_TAGS"
   RUN_TIME="$DEFAULT_RUN_TIME"
   ALIAS_NAME="$DEFAULT_ALIAS"
@@ -62,8 +78,9 @@ if [ "$NONINTERACTIVE" = "Y" ]; then
   echo "  (re-run ./install.sh without -y any time to customize instead)"
   echo
 else
-  read -rp "Where should the vault live? [$DEFAULT_VAULT_PATH]: " VAULT_PATH
-  VAULT_PATH="${VAULT_PATH:-$DEFAULT_VAULT_PATH}"
+  PROMPT_DEFAULT_VAULT_PATH="${CLI_VAULT_PATH:-$DEFAULT_VAULT_PATH}"
+  read -rp "Where should the vault live? [$PROMPT_DEFAULT_VAULT_PATH]: " VAULT_PATH
+  VAULT_PATH="${VAULT_PATH:-$PROMPT_DEFAULT_VAULT_PATH}"
   VAULT_PATH="${VAULT_PATH/#\~/$HOME}"
 
   read -rp "Starter tags, comma-separated [$DEFAULT_TAGS]: " STARTER_TAGS
@@ -275,5 +292,8 @@ echo "00-Inbox note without switching to Obsidian first. Bind it to a global"
 echo "hotkey via Shortcuts.app > New Shortcut > Run Shell Script (see vault"
 echo "README.md, 'Quick capture' section) if you want that."
 echo
-echo "To pull future improvements to the skills/pipeline into this vault later:"
-echo "  cd $SCRIPT_DIR && ./update.sh \"$VAULT_PATH\""
+echo "To pull future improvements to the skills/pipeline into this vault later,"
+echo "clone the repo fresh (don't rely on wherever this install ran from - if"
+echo "you used the one-liner, that clone was in a temp dir) and run update.sh:"
+echo "  git clone https://github.com/AndyMDH/cortex.git && cd cortex"
+echo "  ./update.sh \"$VAULT_PATH\""

@@ -17,4 +17,7 @@ echo "Fetching Cortex..."
 git clone --depth 1 --quiet "$REPO_URL" "$TMP_DIR/cortex"
 
 cd "$TMP_DIR/cortex"
-exec ./install.sh -y "$@"
+# Not `exec` here on purpose: exec replaces this shell's process image, which
+# means the EXIT trap above (the /tmp cleanup) would never fire and every
+# one-liner install would leak a full repo clone into /tmp permanently.
+./install.sh -y "$@"
