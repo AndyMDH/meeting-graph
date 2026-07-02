@@ -1,6 +1,6 @@
 # Cortex
 
-A local knowledge graph, built automatically from your meeting transcripts —
+A local knowledge graph, built automatically from everything you capture —
 fully local except for the LLM calls that do the enrichment.
 
 **New here?** Just want to *use* Cortex → jump to [Install](#install). Want
@@ -8,19 +8,22 @@ to *understand or modify* the code → jump to [Repo layout](#repo-layout).
 
 ## The problem this solves
 
-Meeting notes rot. You dictate or paste a transcript somewhere, and it sits
-there unread — never tagged, never linked to the three other meetings about
-the same topic, never turned into something you'd actually reference again.
+I'm a consultant — back-to-back calls, constant context-switching — and a
+genuinely terrible note-taker. Those two things don't mix: the details that
+matter most are exactly the ones that evaporate by the next call.
 
-Cortex automates the boring part: a daily pipeline reads whatever landed in
-your inbox, writes a structured summary, tags it from a controlled
-vocabulary (no tag sprawl), links it to related meetings, and — once a topic
-has enough meetings behind it — synthesizes a wiki page that becomes a hub
-node in your graph. The result is plain markdown files with YAML
-frontmatter, browsable and editable by hand, that Obsidian renders as a
-graph instead of a folder of unread transcripts.
+Cortex is the fix: capture everything by talking or pasting it in, and let
+a daily pipeline do the remembering. It reads whatever landed in your
+inbox, writes a structured summary, tags it from a controlled vocabulary
+(no tag sprawl), links it to related notes, and — once a topic has enough
+behind it — synthesizes a wiki page that becomes a hub node in your graph.
+Meeting transcripts are the main thing that flows through it, but the same
+pipeline handles any dictated or pasted thought — an idea, a reflection, a
+stray thing you don't want to lose. The result is plain markdown files with
+YAML frontmatter, browsable and editable by hand, that Obsidian renders as
+a graph instead of a folder of unread notes.
 
-Nothing but the transcript text touches the network, and only via the
+Nothing but the captured text touches the network, and only via the
 Anthropic API through Claude Code.
 
 ## Install
@@ -147,8 +150,10 @@ dictate/paste  ->  00-Inbox/  ->  meeting-enricher  ->  10-Meetings/
 - **`meeting-enricher`** (a Claude Code skill): adds frontmatter, infers a
   title/date/project, tags the note from a controlled registry in `30-Tags/`
   (creating a new tag is exceptional and logged), restructures the body into
-  Summary / Key points / Decisions / Action items while preserving the raw
-  transcript verbatim, and links related notes.
+  Summary / Key points / Decisions / Action items, and links related notes —
+  all while preserving the raw source verbatim. Meeting transcripts get the
+  full treatment; a standalone idea or reflection gets a lighter summary
+  instead of a Decisions/Action items section it doesn't have.
 - **`wiki-builder`** (a second skill): once a topic accumulates enough
   meeting notes (default: 4), synthesizes a single narrative wiki page in
   `20-Wikis/` that all of them link into — turning what would otherwise be a
