@@ -4,7 +4,7 @@ Turn everything you dictate or paste — meeting transcripts, ideas, stray
 thoughts — into a linked, tagged Obsidian knowledge graph. A daily pipeline
 does the organizing so you don't have to.
 
-I'm a consultant with back-to-back calls and no talent for note-taking.
+As a consultant I have absolutely no talent or desire for note-taking.
 Cortex is the fix: capture everything, let a daily pipeline remember it.
 Nothing but the captured text touches the network, and only via the
 Anthropic API through Claude Code.
