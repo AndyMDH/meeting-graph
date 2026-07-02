@@ -4,10 +4,16 @@ set -euo pipefail
 VAULT="{{VAULT_PATH}}"
 LOG="$VAULT/90-System/logs/run-$(date +%Y%m%d-%H%M%S).log"
 
+notify() {
+  osascript -e 'on run argv' -e 'display notification (item 1 of argv) with title "{{VAULT_NAME}} pipeline"' -e 'end run' -- "$1" >/dev/null 2>&1 || true
+}
+
 cd "$VAULT"
 
 # Rotate logs older than 30 days
 find 90-System/logs -name '*.log' -mtime +30 -delete
+
+PIPELINE_LOG_LINES_BEFORE="$(wc -l < 90-System/pipeline.log | tr -d ' ')"
 
 # 1. Enrich + build wikis, unless inbox is empty (cheap check, no API cost)
 if find 00-Inbox -maxdepth 1 -type f \( -name '*.md' -o -name '*.txt' \) | grep -q .; then
@@ -37,3 +43,19 @@ if [ "$GIT_TOPLEVEL" = "$VAULT" ] && git remote get-url origin >/dev/null 2>&1; 
 fi
 
 echo "$(date -Iseconds) run complete" >> 90-System/pipeline.log
+
+# 3. Notify: summarize what this run actually did, from the pipeline.log lines
+#    it just appended (not the raw Claude output, which is verbose/unstructured)
+NEW_LINES="$(tail -n "+$((PIPELINE_LOG_LINES_BEFORE + 1))" 90-System/pipeline.log)"
+ENRICHED_COUNT="$(grep -c 'ENRICHED:' <<< "$NEW_LINES" || true)"
+WIKI_COUNT="$(grep -c 'NEW WIKI:' <<< "$NEW_LINES" || true)"
+
+if [ "$ENRICHED_COUNT" -eq 0 ]; then
+  notify "Inbox empty - nothing to process."
+else
+  SUMMARY="$ENRICHED_COUNT meeting$([ "$ENRICHED_COUNT" -eq 1 ] || echo s) enriched"
+  if [ "$WIKI_COUNT" -gt 0 ]; then
+    SUMMARY="$SUMMARY, $WIKI_COUNT new wiki$([ "$WIKI_COUNT" -eq 1 ] || echo s)"
+  fi
+  notify "$SUMMARY."
+fi

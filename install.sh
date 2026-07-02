@@ -96,6 +96,10 @@ mv "$VAULT_PATH/90-System/run.sh.template" "$VAULT_PATH/90-System/run.sh"
 substitute "$VAULT_PATH/90-System/run.sh"
 chmod +x "$VAULT_PATH/90-System/run.sh"
 
+mv "$VAULT_PATH/90-System/quick-capture.sh.template" "$VAULT_PATH/90-System/quick-capture.sh"
+substitute "$VAULT_PATH/90-System/quick-capture.sh"
+chmod +x "$VAULT_PATH/90-System/quick-capture.sh"
+
 mv "$VAULT_PATH/90-System/com.meeting-graph.pipeline.plist.template" \
    "$VAULT_PATH/90-System/com.meeting-graph.pipeline.plist"
 substitute "$VAULT_PATH/90-System/com.meeting-graph.pipeline.plist"
@@ -208,3 +212,8 @@ echo
 echo "Manual pipeline run: $VAULT_PATH/90-System/run.sh"
 echo "Add this alias to your shell profile:"
 echo "  alias $ALIAS_NAME=\"$VAULT_PATH/90-System/run.sh\""
+echo
+echo "Optional: $VAULT_PATH/90-System/quick-capture.sh creates+opens a new"
+echo "00-Inbox note without switching to Obsidian first. Bind it to a global"
+echo "hotkey via Shortcuts.app > New Shortcut > Run Shell Script (see vault"
+echo "README.md, 'Quick capture' section) if you want that."

@@ -34,6 +34,23 @@ Scaffolded by [meeting-graph](https://github.com/AndyMDH/meeting-graph).
    ```bash
    alias {{ALIAS_NAME}}="{{VAULT_PATH}}/90-System/run.sh"
    ```
+   You'll also get a macOS notification when a run finishes, summarizing what
+   it did (see "Running the pipeline").
+
+## Quick capture (skip opening Obsidian first)
+
+`90-System/quick-capture.sh` creates a new timestamped file directly in
+`00-Inbox/` and opens it in Obsidian — same result as `Cmd+N`, runnable from
+anywhere without switching apps first. If you've set up Templater's folder
+template (see "Customizing" below), it still fires on files created this way,
+since it watches the folder, not the app that created the file.
+
+To bind it to a global hotkey (GUI-only step, can't be scripted):
+
+1. Open **Shortcuts.app** → new shortcut → add action **"Run Shell Script"** →
+   set it to run `{{VAULT_PATH}}/90-System/quick-capture.sh` with `/bin/bash`.
+2. In the shortcut's detail pane, click **Add Keyboard Shortcut** and set
+   whatever combo you want free system-wide.
 
 ## Folder structure
 
@@ -110,6 +127,10 @@ Logs:
   retained 30 days.
 - `90-System/logs/launchd.log` — stdout/stderr from launchd invocations.
 
+Every run also fires a macOS notification ("N meetings enriched" or "Inbox
+empty - nothing to process"), summarized from the pipeline.log lines that run
+just appended — so you don't need to check logs to know a run happened.
+
 ## Syncing to a git remote (optional)
 
 `run.sh` auto-detects whether this vault is the root of its own git repo with
@@ -139,13 +160,34 @@ meeting content being public — this vault will contain real transcripts.
 
 ## Obsidian configuration
 
-Not automated — set these up once in Obsidian's settings:
+### Graph view — color by topic
 
-- **Graph view → Groups**: add color groups by path so the hub-and-spoke shape
-  is visible at a glance:
-  - `path:30-Tags` → one color (tag hubs)
-  - `path:20-Wikis` → another color (topic hubs)
-  - `path:10-Meetings` → a third color (spokes)
+Not automated (it depends on which tags you actually accumulate), but once
+you have real notes, set up **Graph view → Groups** (sidebar icon, or `Cmd+P`
+→ "Open graph view", then the filter/groups panel) to color nodes by topic
+instead of by pipeline stage — this is what actually makes topic clusters
+readable, more so than coloring by folder:
+
+1. Pick your ~7-8 most-used tags from `30-Tags/`.
+2. Add one `colorGroups` rule per tag: query `tag:#<tagname>`, one distinct
+   hue each (`.obsidian/graph.json` is plain JSON — editing it directly is
+   easier than the settings UI for more than 2-3 groups).
+3. If you have a "low-signal" meta-tag (e.g. something like `fragment` for
+   short notes that aren't real topics), give it a muted gray and put its rule
+   **last** in the array — later entries win when a note matches more than
+   one tag, so this keeps low-signal notes visually receding instead of
+   competing with real topic colors.
+4. Stop at ~8 hues even if you have more tags — beyond that, distinct colors
+   stop being visually distinguishable anyway. Leave less-used tags uncolored
+   (default) rather than forcing a 9th hue; promote one once it's actually
+   active.
+
+Wiki pages (`20-Wikis/`) and tag notes (`30-Tags/`) don't carry a `tags`
+frontmatter field, so they won't match any of these rules and stay uncolored
+— which reads as intended: a topic's meeting notes light up in that topic's
+color and visually surround their uncolored wiki hub, making the hub-and-spoke
+shape legible without a separate, competing "this is a hub" color.
+
 - **Core plugins**: Backlinks, Graph view, Templates. No community plugins
   required for the pipeline itself.
   - Optional later: Dataview (dashboards over frontmatter), Juggl (richer

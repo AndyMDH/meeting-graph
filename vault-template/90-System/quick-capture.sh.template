@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VAULT="{{VAULT_PATH}}"
+FILE="$VAULT/00-Inbox/$(date +%Y-%m-%d\ %H.%M.%S).md"
+
+touch "$FILE"
+open -a "Obsidian" "$FILE"
